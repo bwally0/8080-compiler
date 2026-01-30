@@ -9,12 +9,13 @@ namespace bmlc {
 // this stream is later consumed by the parser.
 class Lexer {
 public:
-    explicit Lexer(const std::string &source);
+    explicit Lexer(const std::string &source, const std::string &filename);
 
     Token next_token();
 
 private:
     std::string source_;
+    std::string filename_;
     size_t current_pos_;
     int line_;
     int column_;

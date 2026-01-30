@@ -10,9 +10,9 @@ cmake ..
 cmake --build .
 
 if [ -f "./bmlc" ]; then
-    ./bmlc
+    (cd .. && ./build/bmlc)
 elif [ -f "./bmlc.exe" ]; then
-    ./bmlc.exe
+    (cd .. && ./build/bmlc.exe)
 else
     echo "Error: Executable not found"
     exit 1

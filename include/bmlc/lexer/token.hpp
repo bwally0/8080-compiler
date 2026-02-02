@@ -15,7 +15,7 @@ enum class TokenType {
     KW_IF,        // conditional statement
     KW_ELSE,      // else statement
     KW_WHILE,     // while loop
-    KW_RETURN,    // return statement
+    KW_RET,    // return statement
 
     // data types
     KW_UINT8,
@@ -52,7 +52,7 @@ inline std::string token_type_to_string(TokenType type) {
         case TokenType::KW_IF: return "KW_IF";
         case TokenType::KW_ELSE: return "KW_ELSE";
         case TokenType::KW_WHILE: return "KW_WHILE";
-        case TokenType::KW_RETURN: return "KW_RETURN";
+        case TokenType::KW_RET: return "KW_RET";
         case TokenType::KW_UINT8: return "KW_UINT8";
         case TokenType::KW_UINT16: return "KW_UINT16";
         case TokenType::KW_INT8: return "KW_INT8";
@@ -75,6 +75,21 @@ inline std::string token_type_to_string(TokenType type) {
         case TokenType::END_OF_FILE: return "END_OF_FILE";
         default: return "UNKNOWN";
     }
+}
+
+inline TokenType keyword_to_token_type(const std::string& keywords) {
+    if (keywords == "var") return TokenType::KW_VAR;
+    if (keywords == "func") return TokenType::KW_FUNC;
+    if (keywords == "if") return TokenType::KW_IF;
+    if (keywords == "else") return TokenType::KW_ELSE;
+    if (keywords == "while") return TokenType::KW_WHILE;
+    if (keywords == "ret") return TokenType::KW_RET;
+    if (keywords == "uint8") return TokenType::KW_UINT8;
+    if (keywords == "uint16") return TokenType::KW_UINT16;
+    if (keywords == "int8") return TokenType::KW_INT8;
+    if (keywords == "int16") return TokenType::KW_INT16;
+    if (keywords == "void") return TokenType::KW_VOID;
+    return TokenType::IDENTIFIER;
 }
 
 struct Token {

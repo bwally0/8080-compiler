@@ -59,6 +59,9 @@ Token Lexer::next_token() {
         return Token{TokenType::END_OF_FILE, "", line_, column_};
     }
 
+    int start_line = line_;
+    int start_column = column_;
+
     char c = advance();
 
     // skip comments
@@ -74,29 +77,49 @@ Token Lexer::next_token() {
         return next_token(); // get next token
     }
 
+    // keywords and identifiers
+    if (std::isalpha(c) || c == '_') {
+        std::string lexeme(1, c);
+        while (std::isalnum(peek()) || peek() == '_') {
+            lexeme.push_back(advance());
+        }
+
+        TokenType type = keyword_to_token_type(lexeme);
+        return Token{type, lexeme, start_line, start_column};
+    }
+
+    // number literals
+    if (std::isdigit(c)) {
+        std::string lexeme(1, c);
+        while (std::isdigit(peek())) {
+            lexeme.push_back(advance());
+        }
+        return Token{TokenType::NUMBER, lexeme, start_line, start_column};
+    }
+
     switch (c) {
-        case '=': return Token{TokenType::ASSIGN, "=", line_, column_};
-        case '+': return Token{TokenType::PLUS, "+", line_, column_};
+        case '=': return Token{TokenType::ASSIGN, "=", start_line, start_column};
+        case '+': return Token{TokenType::PLUS, "+", start_line, start_column};
         case '-': 
             if (peek() == '>') {
                 advance(); // consume '>'
-                return Token{TokenType::ARROW, "->", line_, column_};
+                return Token{TokenType::ARROW, "->", start_line, start_column};
             } else {
-                return Token{TokenType::MINUS, "-", line_, column_};
+                return Token{TokenType::MINUS, "-", start_line, start_column};
             }
-        case '<': return Token{TokenType::LESS, "<", line_, column_};
-        case '&': return Token{TokenType::AND, "&", line_, column_};
-        case '|': return Token{TokenType::OR, "|", line_, column_};
-        case '^': return Token{TokenType::XOR, "^", line_, column_};
-        case '(': return Token{TokenType::L_PAREN, "(", line_, column_};
-        case ')': return Token{TokenType::R_PAREN, ")", line_, column_};
-        case '{': return Token{TokenType::L_BRACE, "{", line_, column_};
-        case '}': return Token{TokenType::R_BRACE, "}", line_, column_};
-        case ',': return Token{TokenType::COMMA, ",", line_, column_};
-        case ';': return Token{TokenType::SEMICOLON, ";", line_, column_};
+        case '<': return Token{TokenType::LESS, "<", start_line, start_column};
+        case '&': return Token{TokenType::AND, "&", start_line, start_column};
+        case '|': return Token{TokenType::OR, "|", start_line, start_column};
+        case '^': return Token{TokenType::XOR, "^", start_line, start_column};
+        case '(': return Token{TokenType::L_PAREN, "(", start_line, start_column};
+        case ')': return Token{TokenType::R_PAREN, ")", start_line, start_column};
+        case '{': return Token{TokenType::L_BRACE, "{", start_line, start_column};
+        case '}': return Token{TokenType::R_BRACE, "}", start_line, start_column};
+        case ',': return Token{TokenType::COMMA, ",", start_line, start_column};
+        case ';': return Token{TokenType::SEMICOLON, ";", start_line, start_column};
     }
 
-    throw std::runtime_error(filename_ + ":" + std::to_string(line_) + ":" + std::to_string(column_) +
+    throw std::runtime_error(filename_ + ":" + std::to_string(start_line) + ":" + std::to_string(start_column) +
                              ": error: unexpected character '" + c + "'");
 }
 

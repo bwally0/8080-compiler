@@ -1,6 +1,6 @@
 #pragma once
 
-#include<iomanip>
+#include <iomanip>
 #include <string>
 
 namespace bmlc {

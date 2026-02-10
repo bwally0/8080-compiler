@@ -22,7 +22,6 @@ enum class TokenType {
     KW_UINT16,
     KW_INT8,
     KW_INT16,
-    KW_VOID,
 
     ASSIGN,       // =
     PLUS,         // +
@@ -57,7 +56,6 @@ inline std::string token_type_to_string(TokenType type) {
         case TokenType::KW_UINT16: return "KW_UINT16";
         case TokenType::KW_INT8: return "KW_INT8";
         case TokenType::KW_INT16: return "KW_INT16";
-        case TokenType::KW_VOID: return "KW_VOID";
         case TokenType::ASSIGN: return "ASSIGN";
         case TokenType::PLUS: return "PLUS";
         case TokenType::MINUS: return "MINUS";
@@ -88,7 +86,6 @@ inline TokenType keyword_to_token_type(const std::string& keywords) {
     if (keywords == "uint16") return TokenType::KW_UINT16;
     if (keywords == "int8") return TokenType::KW_INT8;
     if (keywords == "int16") return TokenType::KW_INT16;
-    if (keywords == "void") return TokenType::KW_VOID;
     return TokenType::IDENTIFIER;
 }
 

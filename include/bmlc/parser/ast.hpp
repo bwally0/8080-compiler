@@ -11,12 +11,17 @@ struct Statement;
 struct Expression;
 struct Block;
 
+struct SourceLocation {
+    std::string filename;
+    int line;
+    int column;
+};
+
 enum class Type {
     UINT8,
     UINT16,
     INT8,
-    INT16,
-    VOID
+    INT16
 };
 
 enum class BinaryOperator {
@@ -30,6 +35,7 @@ enum class BinaryOperator {
 
 struct ASTNode {
     virtual ~ASTNode() = default;
+    SourceLocation location;
 };
 
 // Program
@@ -47,7 +53,6 @@ struct Declaration : ASTNode {
 struct VarDeclaration : Declaration {
     Type type;
     std::string name;
-    std::unique_ptr<Expression> value;
 };
 
 struct Param {
@@ -107,9 +112,8 @@ struct VariableExpression : Expression {
     std::string name;
 };
 
-struct LiteralExpression : Expression {
-    Type type;
-    std::string value;
+struct NumberLiteral : Expression {
+    int value;
 };
 
 struct FuncCallExpression : Expression {

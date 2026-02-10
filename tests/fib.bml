@@ -6,8 +6,9 @@ var uint8 r1;
 var uint8 i; 
 
 /* main function */
-func main() -> void {
+func main() -> uint8 {
     n = fibonacci(4);
+    ret 0;
 }
 
 /* fibonacci function */

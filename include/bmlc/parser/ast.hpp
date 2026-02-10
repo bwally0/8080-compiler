@@ -24,6 +24,16 @@ enum class Type {
     INT16
 };
 
+inline std::string type_to_string(Type type) {
+    switch (type) {
+        case Type::UINT8: return "uint8";
+        case Type::UINT16: return "uint16";
+        case Type::INT8: return "int8";
+        case Type::INT16: return "int16";
+        default: return "unknown";
+    }
+}
+
 enum class BinaryOperator {
     PLUS,
     MINUS,
@@ -32,6 +42,18 @@ enum class BinaryOperator {
     OR,
     XOR
 };
+
+inline std::string binary_operator_to_string(BinaryOperator op) {
+    switch (op) {
+        case BinaryOperator::PLUS: return "+";
+        case BinaryOperator::MINUS: return "-";
+        case BinaryOperator::LESS: return "<";
+        case BinaryOperator::AND: return "&";
+        case BinaryOperator::OR: return "|";
+        case BinaryOperator::XOR: return "^";
+        default: return "unknown";
+    }
+}
 
 struct ASTNode {
     virtual ~ASTNode() = default;

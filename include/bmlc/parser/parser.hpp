@@ -9,12 +9,31 @@ namespace bmlc {
 
 class Parser {
 public:
-    explicit Parser(const Lexer& lexer);
-    std::unique_ptr<Program> parseProgram();
+    explicit Parser(const Lexer& lexer, const std::string &filename);
+    std::unique_ptr<Program> parse_program();
 
 private:
     Lexer& lexer_;
     Token current_token_;
+    std::string filename_;
+
+    void advance();
+    void expect(TokenType type);
+    SourceLocation current_location() const;
+
+    std::unique_ptr<Declaration> parse_declaration();
+    std::unique_ptr<VarDeclaration> parse_var_declaration();
+    std::unique_ptr<FuncDeclaration> parse_func_declaration();
+    std::vector<Param> parse_param_list();
+
+    std::unique_ptr<Block> parse_block();
+    std::unique_ptr<Statement> parse_statement();
+    std::unique_ptr<AssignmentStatement> parse_assignment_statement();
+    std::unique_ptr<IfStatement> parse_if_statement();
+    std::unique_ptr<WhileStatement> parse_while_statement();
+    std::unique_ptr<RetStatement> parse_ret_statement();
+
+    std::unique_ptr<Expression> parse_expression();
 };
 
 } // namespace bmlc

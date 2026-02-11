@@ -4,6 +4,8 @@
 
 #include <bmlc/lexer/token.hpp>
 #include <bmlc/lexer/lexer.hpp>
+#include <bmlc/parser/ast.hpp>
+#include <bmlc/parser/parser.hpp>
 
 int main() {
     std::string filename("fib.bml");
@@ -20,17 +22,9 @@ int main() {
     file.close();
 
     bmlc::Lexer lexer(source, filename);
+    bmlc::Parser parser(lexer, filename);
 
-    bmlc::Token token;
-    do {
-        try {
-            token = lexer.next_token();
-            std::cout << token << std::endl;
-        } catch (const std::runtime_error &e) {
-            std::cerr << e.what() << std::endl;
-        }
-
-    } while (token.type != bmlc::TokenType::END_OF_FILE);
+    auto program = parser.parse_program();
 
     return 0;
 }

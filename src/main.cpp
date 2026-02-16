@@ -25,6 +25,7 @@ int main() {
     bmlc::Parser parser(lexer, filename);
 
     auto program = parser.parse_program();
+    print_ast(*program);
 
     return 0;
 }

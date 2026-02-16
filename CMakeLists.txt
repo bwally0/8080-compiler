@@ -10,6 +10,7 @@ add_executable(bmlc
     src/main.cpp
     src/lexer/lexer.cpp
     src/parser/parser.cpp
+    src/parser/ast.cpp
 )
 
 target_include_directories(bmlc

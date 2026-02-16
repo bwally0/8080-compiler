@@ -89,6 +89,11 @@ inline TokenType keyword_to_token_type(const std::string& keywords) {
     return TokenType::IDENTIFIER;
 }
 
+inline bool is_binary_operator(TokenType type) {
+    return type == TokenType::PLUS || type == TokenType::MINUS || type == TokenType::LESS ||
+           type == TokenType::AND || type == TokenType::OR || type == TokenType::XOR;
+}
+
 struct Token {
     TokenType type;
     std::string lexeme;

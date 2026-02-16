@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <bmlc/lexer/token.hpp>
 
 namespace bmlc {
 
@@ -52,6 +53,18 @@ inline std::string binary_operator_to_string(BinaryOperator op) {
         case BinaryOperator::OR: return "|";
         case BinaryOperator::XOR: return "^";
         default: return "unknown";
+    }
+}
+
+inline BinaryOperator token_to_binary_operator(TokenType type) {
+    switch (type) {
+        case TokenType::PLUS: return BinaryOperator::PLUS;
+        case TokenType::MINUS: return BinaryOperator::MINUS;
+        case TokenType::LESS: return BinaryOperator::LESS;
+        case TokenType::AND: return BinaryOperator::AND;
+        case TokenType::OR: return BinaryOperator::OR;
+        case TokenType::XOR: return BinaryOperator::XOR;
+        default: throw std::runtime_error("error: invalid binary operator token: " + token_type_to_string(type));
     }
 }
 
@@ -142,5 +155,11 @@ struct FuncCallExpression : Expression {
     std::string name;
     std::vector<std::unique_ptr<Expression>> arguments;
 };
+
+// AST Printing
+void print_ast(const Program& program);
+void print_declaration(const Declaration& decl, int indent = 0);
+void print_statement(const Statement& stmt, int indent = 0);
+void print_expression(const Expression& expr, int indent = 0);
 
 } // namespace bmlc

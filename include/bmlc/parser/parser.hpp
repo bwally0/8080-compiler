@@ -38,9 +38,6 @@ private:
     std::unique_ptr<Expression> parse_operand();
     std::unique_ptr<Expression> parse_function_call_tail(const std::string& name);
     std::vector<std::unique_ptr<Expression>> parse_argument_list();
-
-    bool is_binary_operator(TokenType type);
-    BinaryOperator token_to_binary_operator(TokenType type);
 };
 
 } // namespace bmlc

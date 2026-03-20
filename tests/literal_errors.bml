@@ -1,0 +1,30 @@
+/* Test: Literal value checks - overflow and negative literals */
+var uint8 a;
+var uint16 b;
+var int8 c;
+var int16 d;
+var uint8 res;
+
+func literal_test() -> uint8 {
+    /* Error: 256 does not fit in uint8 (range 0-255) */
+    a = 256;
+    
+    /* Error: 65536 does not fit in uint16 (range 0-65535) */
+    b = 65536;
+    
+    /* Warning: negative literal assigned to unsigned type */
+    a = 0;
+    
+    /* OK: 42 fits in uint8 */
+    a = 42;
+    
+    /* OK: 100 fits in int8 */
+    c = 100;
+    
+    ret 0;
+}
+
+func main() -> uint8 {
+    res = literal_test();
+    ret 0;
+}

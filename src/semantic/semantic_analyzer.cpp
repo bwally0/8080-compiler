@@ -135,6 +135,11 @@ void SemanticAnalyzer::visit_assignment(const AssignmentStatement& stmt) {
                           "cannot assign " + type_to_string(expr_type) + 
                           " to " + type_to_string(var_symbol->type));
             }
+            
+            // Check literal values in assignments
+            if (var_symbol) {
+                check_literal_value_in_expression(*stmt.value, var_symbol->type);
+            }
         }
     }
     
@@ -349,6 +354,74 @@ void SemanticAnalyzer::check_function_call(const FuncCallExpression& call) {
             add_error(format_location(call.location) + ": error: argument " + 
                       std::to_string(i + 1) + " type mismatch: expected " + 
                       type_to_string(param_type) + " but got " + type_to_string(arg_type));
+        }
+        
+        // Check literal values in arguments
+        check_literal_value_in_expression(*call.arguments[i], param_type);
+    }
+}
+
+bool SemanticAnalyzer::is_literal_in_range(int value, Type type) const {
+    switch (type) {
+        case Type::UINT8:
+            return value >= LIT_UINT8_MIN && value <= LIT_UINT8_MAX;
+        case Type::UINT16:
+            return value >= LIT_UINT16_MIN && value <= LIT_UINT16_MAX;
+        case Type::INT8:
+            return value >= LIT_INT8_MIN && value <= LIT_INT8_MAX;
+        case Type::INT16:
+            return value >= LIT_INT16_MIN && value <= LIT_INT16_MAX;
+        default:
+            return true;
+    }
+}
+
+void SemanticAnalyzer::check_literal_value(const NumberLiteral& literal, Type expected_type) {
+    int value = literal.value;
+    
+    // Check if literal fits in the expected type
+    if (!is_literal_in_range(value, expected_type)) {
+        std::string range_str;
+        switch (expected_type) {
+            case Type::UINT8:
+                range_str = "0-255";
+                break;
+            case Type::UINT16:
+                range_str = "0-65535";
+                break;
+            case Type::INT8:
+                range_str = "-128-127";
+                break;
+            case Type::INT16:
+                range_str = "-32768-32767";
+                break;
+            default:
+                range_str = "unknown";
+        }
+        
+        add_error(format_location(literal.location) + ": error: literal " + 
+                  std::to_string(value) + " does not fit in type " + 
+                  type_to_string(expected_type) + " (range " + range_str + ")");
+    }
+    
+    // Warn about negative literals in unsigned types
+    if (value < 0 && (expected_type == Type::UINT8 || expected_type == Type::UINT16)) {
+        add_warning(format_location(literal.location) + ": warning: negative literal " + 
+                    std::to_string(value) + " assigned to unsigned type " + 
+                    type_to_string(expected_type));
+    }
+}
+
+void SemanticAnalyzer::check_literal_value_in_expression(const Expression& expr, Type expected_type) {
+    if (auto literal = dynamic_cast<const NumberLiteral*>(&expr)) {
+        check_literal_value(*literal, expected_type);
+    } else if (auto binary_expr = dynamic_cast<const BinaryExpression*>(&expr)) {
+        // Recursively check literals in binary expressions
+        if (binary_expr->left) {
+            check_literal_value_in_expression(*binary_expr->left, expected_type);
+        }
+        if (binary_expr->right) {
+            check_literal_value_in_expression(*binary_expr->right, expected_type);
         }
     }
 }

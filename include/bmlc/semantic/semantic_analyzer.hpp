@@ -13,9 +13,20 @@ class SemanticAnalyzer {
 public:
     explicit SemanticAnalyzer();
     
+    // 8080 Calling Convention Constants
     static constexpr int MAX_ARG_SLOTS = 4;
     static constexpr int MAX_ARG_BYTES = 4;
     static constexpr int MAX_RETURN_BYTES = 2;
+    
+    // Type Range Constants
+    static constexpr int LIT_UINT8_MIN = 0;
+    static constexpr int LIT_UINT8_MAX = 255;
+    static constexpr int LIT_UINT16_MIN = 0;
+    static constexpr int LIT_UINT16_MAX = 65535;
+    static constexpr int LIT_INT8_MIN = -128;
+    static constexpr int LIT_INT8_MAX = 127;
+    static constexpr int LIT_INT16_MIN = -32768;
+    static constexpr int LIT_INT16_MAX = 32767;
     
     void analyze(const Program& program);
     const SymbolTable& get_symbol_table() const { return symbol_table_; }
@@ -60,6 +71,11 @@ private:
     // Function call checks
     void check_function_declarations();
     void check_function_call(const FuncCallExpression& call);
+    
+    // Literal value checks
+    bool is_literal_in_range(int value, Type type) const;
+    void check_literal_value(const NumberLiteral& literal, Type expected_type);
+    void check_literal_value_in_expression(const Expression& expr, Type expected_type);
     
     // Helper functions
     int get_type_size(Type type) const;

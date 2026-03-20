@@ -13,6 +13,10 @@ class SemanticAnalyzer {
 public:
     explicit SemanticAnalyzer();
     
+    static constexpr int MAX_ARG_SLOTS = 4;
+    static constexpr int MAX_ARG_BYTES = 4;
+    static constexpr int MAX_RETURN_BYTES = 2;
+    
     void analyze(const Program& program);
     const SymbolTable& get_symbol_table() const { return symbol_table_; }
     
@@ -53,6 +57,12 @@ private:
     Type get_expression_type(const Expression& expr);
     void visit_expression(const Expression& expr);
     
+    // Function call checks
+    void check_function_declarations();
+    void check_function_call(const FuncCallExpression& call);
+    
+    // Helper functions
+    int get_type_size(Type type) const;
     bool is_symbol_defined(const std::string& name) const;
     std::string format_location(const SourceLocation& loc) const;
 };

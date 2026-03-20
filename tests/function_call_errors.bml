@@ -1,0 +1,33 @@
+/* Test: Function call checks - argument count, argument types, return size */
+var uint8 res;
+
+
+/* Error: More than 4 parameters */
+func too_many_args(uint8 a, uint8 b, uint8 c, uint8 d, uint8 e) -> uint8 {
+    ret 0;
+}
+
+/* Error: Total argument size exceeds 4 bytes (3 * uint16 = 6 bytes) */
+func exceeds_arg_slots(uint16 x, uint16 y, uint16 z) -> uint8 {
+    ret 0;
+}
+
+/* OK: Exactly 4 parameters */
+func valid_args(uint8 a, uint8 b, uint8 c, uint8 d) -> uint8 {
+    ret a + b + c + d;
+}
+
+/* OK: uint16 return type uses 2 slots */
+func return_uint16() -> uint16 {
+    ret 1000;
+}
+
+func main() -> uint8 {
+    /* Error: Expected 4 arguments but got 2 */
+    res = valid_args(1, 2);
+    
+    /* Error: Argument type mismatch */
+    res = valid_args(100, 200, 300, 400);
+    
+    ret 0;
+}

@@ -16,6 +16,9 @@ void SemanticAnalyzer::analyze(const Program& program) {
         add_error("error: no main() function defined");
     }
     
+    // Check function declarations for calling convention compliance
+    check_function_declarations();
+    
     // Check function bodies for undefined references
     check_function_bodies(program);
     
@@ -184,6 +187,7 @@ void SemanticAnalyzer::visit_expression(const Expression& expr) {
                       call_expr->name + "'");
         } else {
             symbol_table_.mark_as_used(call_expr->name);
+            check_function_call(*call_expr);
         }
         for (const auto& arg : call_expr->arguments) {
             visit_expression(*arg);
@@ -267,6 +271,86 @@ Type SemanticAnalyzer::get_expression_type(const Expression& expr) {
     }
     
     return Type::UINT8;
+}
+
+int SemanticAnalyzer::get_type_size(Type type) const {
+    switch (type) {
+        case Type::UINT8:
+        case Type::INT8:
+            return 1;
+        case Type::UINT16:
+        case Type::INT16:
+            return 2;
+        default:
+            return 1;
+    }
+}
+
+void SemanticAnalyzer::check_function_declarations() {
+    auto symbols = symbol_table_.get_all_symbols();
+    for (auto symbol : symbols) {
+        if (!symbol->is_function) continue;
+        
+        // Check argument count and total size
+        int total_arg_size = 0;
+        for (const auto& param : symbol->parameters) {
+            total_arg_size += get_type_size(param.type);
+        }
+        
+        // Check parameter count
+        if (symbol->parameters.size() > MAX_ARG_SLOTS) {
+            add_error(format_location(symbol->location) + ": error: function '" + symbol->name + 
+                      "' has " + std::to_string(symbol->parameters.size()) + 
+                      " parameters but calling convention only supports " + 
+                      std::to_string(MAX_ARG_SLOTS) + " (ARG 0-" + 
+                      std::to_string(MAX_ARG_SLOTS - 1) + ")");
+        }
+        
+        // Check total argument size
+        if (total_arg_size > MAX_ARG_BYTES) {
+            add_error(format_location(symbol->location) + ": error: function '" + symbol->name + 
+                      "' arguments require " + std::to_string(total_arg_size) + 
+                      " bytes but only " + std::to_string(MAX_ARG_BYTES) + 
+                      " available in calling convention");
+        }
+        
+        // Check return value size
+        int return_size = get_type_size(symbol->type);
+        if (return_size > MAX_RETURN_BYTES) {
+            add_error(format_location(symbol->location) + ": error: function '" + symbol->name + 
+                      "' return type requires " + std::to_string(return_size) + 
+                      " bytes but only " + std::to_string(MAX_RETURN_BYTES) + 
+                      " return slots available (RET 0-" + 
+                      std::to_string(MAX_RETURN_BYTES - 1) + ")");
+        }
+    }
+}
+
+void SemanticAnalyzer::check_function_call(const FuncCallExpression& call) {
+    Symbol* func_symbol = symbol_table_.lookup(call.name);
+    if (!func_symbol || !func_symbol->is_function) {
+        return;  // Error already reported in visit_expression
+    }
+    
+    // Check argument count
+    if (call.arguments.size() != func_symbol->parameters.size()) {
+        add_error(format_location(call.location) + ": error: function '" + call.name + 
+                  "' expects " + std::to_string(func_symbol->parameters.size()) + 
+                  " arguments but got " + std::to_string(call.arguments.size()));
+        return;
+    }
+    
+    // Check argument types
+    for (size_t i = 0; i < call.arguments.size(); ++i) {
+        Type arg_type = get_expression_type(*call.arguments[i]);
+        Type param_type = func_symbol->parameters[i].type;
+        
+        if (arg_type != param_type) {
+            add_error(format_location(call.location) + ": error: argument " + 
+                      std::to_string(i + 1) + " type mismatch: expected " + 
+                      type_to_string(param_type) + " but got " + type_to_string(arg_type));
+        }
+    }
 }
 
 } // namespace bmlc

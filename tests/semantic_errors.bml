@@ -1,0 +1,23 @@
+/* Test: Semantic errors - undefined variable and function */
+var uint8 x;
+var uint8 res;
+var uint8 z;
+
+func undefined_call() -> uint8 {
+    ret 0;
+}
+
+func test_errors() -> uint8 {
+    /* Error: using undefined variable 'y' */
+    x = y + 5;
+    
+    /* Error: calling undefined function */
+    result = nonexistent_func(10);
+    
+    ret 0;
+}
+
+func main() -> uint8 {
+    res = test_errors();
+    ret 0;
+}

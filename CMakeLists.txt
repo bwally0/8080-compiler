@@ -11,6 +11,8 @@ add_executable(bmlc
     src/lexer/lexer.cpp
     src/parser/parser.cpp
     src/parser/ast.cpp
+    src/semantic/symbol_table.cpp
+    src/semantic/semantic_analyzer.cpp
 )
 
 target_include_directories(bmlc

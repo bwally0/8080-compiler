@@ -326,13 +326,17 @@ std::unique_ptr<Expression> Parser::parse_binary_tail(std::unique_ptr<Expression
 std::unique_ptr<Expression> Parser::parse_operand() {
     if (current_token_.type == TokenType::NUMBER) {
         auto literal = std::make_unique<NumberLiteral>();
+        literal->location = current_location();
         literal->value = std::stoi(current_token_.lexeme);
         advance();
         return literal;
     } else if (current_token_.type == TokenType::IDENTIFIER) {
         auto name = current_token_.lexeme;
+        auto saved_location = current_location();
         advance();
-        return parse_function_call_tail(name);
+        auto expr = parse_function_call_tail(name);
+        expr->location = saved_location;
+        return expr;
     }
     throw std::runtime_error("expected operand");
 }
@@ -348,7 +352,6 @@ std::unique_ptr<Expression> Parser::parse_function_call_tail(const std::string& 
     expect(TokenType::L_PAREN);
     auto args = parse_argument_list();
     expect(TokenType::R_PAREN);
-
 
     auto function_call = std::make_unique<FuncCallExpression>();
     function_call->name = name;

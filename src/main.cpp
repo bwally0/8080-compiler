@@ -6,13 +6,15 @@
 #include <bmlc/lexer/lexer.hpp>
 #include <bmlc/parser/ast.hpp>
 #include <bmlc/parser/parser.hpp>
+#include <bmlc/semantic/semantic_analyzer.hpp>
 
-int main() {
-    std::string filename("fib.bml");
-    std::string filepath("./tests/fib.bml");
+int main(int argc, char* argv[]) {
+    std::string filepath = (argc > 1) ? argv[1] : "./tests/fib.bml";
+    std::string filename = filepath.substr(filepath.find_last_of("/\\") + 1);
+    
     std::ifstream file(filepath);   
     if (!file.is_open()) {
-        std::cerr << "error: failed to open source file: '" << filename << "'" << std::endl;
+        std::cerr << "error: failed to open source file: '" << filepath << "'" << std::endl;
         return 1;
     }
 
@@ -22,10 +24,29 @@ int main() {
     file.close();
 
     bmlc::Lexer lexer(source, filename);
+    
     bmlc::Parser parser(lexer, filename);
-
     auto program = parser.parse_program();
-    print_ast(*program);
+    
+    bmlc::SemanticAnalyzer analyzer;
+    analyzer.analyze(*program);
+    
+    //print_ast(*program);
+    
+    // Report warnings
+    if (analyzer.has_warnings()) {
+        for (const auto& warning : analyzer.get_warnings()) {
+            std::cerr << warning << std::endl;
+        }
+    }
+    
+    // Report errors
+    if (analyzer.has_errors()) {
+        for (const auto& error : analyzer.get_errors()) {
+            std::cerr << error << std::endl;
+        }
+        return 1;
+    }
 
     return 0;
 }

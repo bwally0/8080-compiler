@@ -1,0 +1,14 @@
+/* Test: Semantic errors - redeclaration and variable used without declaration */
+var uint8 count;
+var uint8 count;  /* Error: 'count' already declared */
+
+func process(uint8 n) -> uint8 {
+    /* Error: undefined variable 'unused_var' */
+    total = n + unused_var;
+    ret total;
+}
+
+func main() -> uint8 {
+    count = 5;
+    ret 0;
+}

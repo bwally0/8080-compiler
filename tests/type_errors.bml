@@ -1,0 +1,30 @@
+/* Test: Type checking - type mismatches in operations */
+var uint8 a;
+var uint16 b;
+var uint8 result;
+
+func get_uint16() -> uint16 {
+    ret 300;
+}
+
+func get_uint8() -> uint8 {
+    ret 42;
+}
+
+func type_test(uint8 x, uint16 y) -> uint8 {
+    /* Error: type mismatch - cannot assign uint16 to uint8 */
+    a = y;
+    
+    /* Error: type mismatch - function return type uint16 cannot assign to uint8 */
+    result = get_uint16();
+    
+    /* Error: type mismatch in binary operation - uint8 + uint16 */
+    result = x + y;
+    
+    /* Error: return type mismatch - function expects uint8 but got uint16 */
+    ret y;
+}
+
+func main() -> uint8 {
+    ret 0;
+}

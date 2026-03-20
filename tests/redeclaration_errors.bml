@@ -8,6 +8,10 @@ func process(uint8 n) -> uint8 {
     ret total;
 }
 
+func process(uint8 n) -> uint8 {
+    ret n;
+}
+
 func main() -> uint8 {
     count = 5;
     ret 0;

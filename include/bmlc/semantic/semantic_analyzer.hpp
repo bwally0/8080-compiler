@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <unordered_set>
+#include <unordered_map>
 
 namespace bmlc {
 
@@ -26,6 +27,8 @@ private:
     std::vector<std::string> errors_;
     std::vector<std::string> warnings_;
     std::unordered_set<std::string> local_scope_;
+    std::unordered_map<std::string, Type> local_scope_types_;
+    Type current_function_return_type_;
     
     void add_error(const std::string& message);
     void add_warning(const std::string& message);
@@ -45,6 +48,9 @@ private:
     void visit_return_statement(const RetStatement& stmt);
     
     void check_unused_symbols();
+    
+    // Type checking
+    Type get_expression_type(const Expression& expr);
     void visit_expression(const Expression& expr);
     
     bool is_symbol_defined(const std::string& name) const;

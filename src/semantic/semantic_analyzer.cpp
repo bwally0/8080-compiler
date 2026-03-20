@@ -3,7 +3,9 @@
 
 namespace bmlc {
 
-SemanticAnalyzer::SemanticAnalyzer() = default;
+SemanticAnalyzer::SemanticAnalyzer() 
+    : current_function_return_type_(Type::UINT8) {
+}
 
 void SemanticAnalyzer::analyze(const Program& program) {
     // Collect all declarations (functions and variables)
@@ -75,10 +77,15 @@ void SemanticAnalyzer::check_function_bodies(const Program& program) {
 void SemanticAnalyzer::visit_func_body(const FuncDeclaration& func) {
     symbol_table_.mark_as_used(func.name);
     
+    // Set current function return type
+    current_function_return_type_ = func.return_type;
+    
     // Create local scope for function parameters
     local_scope_.clear();
+    local_scope_types_.clear();
     for (const auto& param : func.parameters) {
         local_scope_.insert(param.name);
+        local_scope_types_[param.name] = param.type;
     }
     
     if (func.body) {
@@ -87,6 +94,7 @@ void SemanticAnalyzer::visit_func_body(const FuncDeclaration& func) {
     
     // Clear local scope
     local_scope_.clear();
+    local_scope_types_.clear();
 }
 
 void SemanticAnalyzer::visit_block(const Block& block) {
@@ -113,6 +121,18 @@ void SemanticAnalyzer::visit_assignment(const AssignmentStatement& stmt) {
                   stmt.name + "'");
     } else {
         symbol_table_.mark_as_used(stmt.name);
+        
+        // Check assignment type compatibility
+        if (stmt.value) {
+            Symbol* var_symbol = symbol_table_.lookup(stmt.name);
+            Type expr_type = get_expression_type(*stmt.value);
+            
+            if (var_symbol && var_symbol->type != expr_type) {
+                add_error(format_location(stmt.location) + ": error: type mismatch in assignment: " +
+                          "cannot assign " + type_to_string(expr_type) + 
+                          " to " + type_to_string(var_symbol->type));
+            }
+        }
     }
     
     if (stmt.value) {
@@ -140,6 +160,12 @@ void SemanticAnalyzer::visit_while_statement(const WhileStatement& stmt) {
 
 void SemanticAnalyzer::visit_return_statement(const RetStatement& stmt) {
     if (stmt.value) {
+        Type expr_type = get_expression_type(*stmt.value);
+        if (expr_type != current_function_return_type_) {
+            add_error(format_location(stmt.value->location) + ": error: return type mismatch: " +
+                      "expected " + type_to_string(current_function_return_type_) + 
+                      " but got " + type_to_string(expr_type));
+        }
         visit_expression(*stmt.value);
     }
 }
@@ -200,6 +226,47 @@ void SemanticAnalyzer::check_unused_symbols() {
         add_warning(format_location(symbol->location) + ": warning: unused " + kind + 
                     " '" + symbol->name + "'");
     }
+}
+
+Type SemanticAnalyzer::get_expression_type(const Expression& expr) {
+    if (auto literal = dynamic_cast<const NumberLiteral*>(&expr)) {
+        // For now, assume all numeric literals are uint8
+        return Type::UINT8;
+    } else if (auto var_expr = dynamic_cast<const VariableExpression*>(&expr)) {
+        // Check local scope first (function parameters)
+        auto it = local_scope_types_.find(var_expr->name);
+        if (it != local_scope_types_.end()) {
+            return it->second;
+        }
+        
+        // Check global scope
+        Symbol* symbol = symbol_table_.lookup(var_expr->name);
+        if (symbol) {
+            return symbol->type;
+        }
+        // Shouldn't reach here if visit_expression was called first
+        return Type::UINT8;
+    } else if (auto call_expr = dynamic_cast<const FuncCallExpression*>(&expr)) {
+        Symbol* symbol = symbol_table_.lookup(call_expr->name);
+        if (symbol && symbol->is_function) {
+            return symbol->type;
+        }
+        return Type::UINT8;
+    } else if (auto binary_expr = dynamic_cast<const BinaryExpression*>(&expr)) {
+        Type left_type = get_expression_type(*binary_expr->left);
+        Type right_type = get_expression_type(*binary_expr->right);
+        
+        // Check that both operands have the same type
+        if (left_type != right_type) {
+            add_error(format_location(binary_expr->location) + ": error: type mismatch in binary operation: " +
+                      type_to_string(left_type) + " " + binary_operator_to_string(binary_expr->op) + 
+                      " " + type_to_string(right_type));
+        }
+        
+        return left_type;
+    }
+    
+    return Type::UINT8;
 }
 
 } // namespace bmlc

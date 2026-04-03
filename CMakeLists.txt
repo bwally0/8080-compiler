@@ -13,6 +13,9 @@ add_executable(bmlc
     src/parser/ast.cpp
     src/semantic/symbol_table.cpp
     src/semantic/semantic_analyzer.cpp
+    src/codegen/instruction_emitter.cpp
+    src/codegen/register_pool.cpp
+    src/codegen/codegen.cpp
 )
 
 target_include_directories(bmlc

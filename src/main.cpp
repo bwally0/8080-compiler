@@ -7,6 +7,7 @@
 #include <bmlc/parser/ast.hpp>
 #include <bmlc/parser/parser.hpp>
 #include <bmlc/semantic/semantic_analyzer.hpp>
+#include <bmlc/codegen/codegen.hpp>
 
 int main(int argc, char* argv[]) {
     std::string filepath = (argc > 1) ? argv[1] : "./tests/fib.bml";
@@ -47,6 +48,31 @@ int main(int argc, char* argv[]) {
         }
         return 1;
     }
+    
+    // ============================================================================
+    // Code Generation
+    // ============================================================================
+    std::cout << "Generating code..." << std::endl;
+    
+    bmlc::CodeGenerator codegen(&analyzer.get_symbol_table());
+    codegen.generate(*program);
+    
+    // Output assembly to file
+    std::string output_filepath = filepath.substr(0, filepath.find_last_of(".")) + ".asm";
+    std::ofstream output_file(output_filepath);
+    if (!output_file.is_open()) {
+        std::cerr << "error: failed to open output file: '" << output_filepath << "'" << std::endl;
+        return 1;
+    }
+    
+    auto assembly = codegen.get_output();
+    for (const auto& instruction : assembly) {
+        output_file << instruction << std::endl;
+    }
+    output_file.close();
+    
+    std::cout << "Assembly written to: " << output_filepath << std::endl;
+    std::cout << "Total instructions: " << assembly.size() << std::endl;
 
     return 0;
 }

@@ -7,7 +7,7 @@ var uint8 i;
 
 /* main function */
 func main() -> uint8 {
-    n = fibonacci(4);
+    n = fibonacci(10);
     ret 0;
 }
 

@@ -41,15 +41,18 @@ jobs:
           exit 1
         fi
 
-        # Test counter
         TOTAL=0
         PASSED=0
         FAILED=0
 
-        # Array of test files to run
-        TEST_FILES=(
+        # Valid tests - should compile without errors
+        VALID_TESTS=(
           "./tests/fib.bml"
           "./tests/factorial.bml"
+        )
+
+        # Error detection tests - should fail with compilation errors
+        ERROR_TESTS=(
           "./tests/function_call_errors.bml"
           "./tests/literal_errors.bml"
           "./tests/redeclaration_errors.bml"
@@ -60,22 +63,43 @@ jobs:
         )
 
         echo "========================================="
-        echo "Running BML Compiler Tests"
+        echo "Valid Compilation Tests"
         echo "========================================="
         echo ""
 
-        for test_file in "${TEST_FILES[@]}"; do
+        for test_file in "${VALID_TESTS[@]}"; do
           if [ -f "$test_file" ]; then
             TOTAL=$((TOTAL + 1))
             echo "Test $TOTAL: $test_file"
             
             if $EXECUTABLE "$test_file" > /tmp/test_output.txt 2>&1; then
-              echo "  ✓ PASSED"
+              echo "  ✓ PASSED (compiled successfully)"
               PASSED=$((PASSED + 1))
             else
-              echo "  ✗ FAILED"
+              echo "  ✗ FAILED (should have compiled)"
               cat /tmp/test_output.txt | sed 's/^/    /'
               FAILED=$((FAILED + 1))
+            fi
+            echo ""
+          fi
+        done
+
+        echo "========================================="
+        echo "Error Detection Tests"
+        echo "========================================="
+        echo ""
+
+        for test_file in "${ERROR_TESTS[@]}"; do
+          if [ -f "$test_file" ]; then
+            TOTAL=$((TOTAL + 1))
+            echo "Test $TOTAL: $test_file"
+            
+            if $EXECUTABLE "$test_file" > /tmp/test_output.txt 2>&1; then
+              echo "  ✗ FAILED (should have detected error)"
+              FAILED=$((FAILED + 1))
+            else
+              echo "  ✓ PASSED (error correctly detected)"
+              PASSED=$((PASSED + 1))
             fi
             echo ""
           fi

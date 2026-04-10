@@ -1,0 +1,13 @@
+/* Test: Lexer error - unexpected character */
+var uint8 x;
+var uint8 y;
+
+func invalid_char() -> uint8 {
+    /* This line contains @ which is not a valid character in the language */
+    x = y @ 5;
+    ret x;
+}
+
+func main() -> uint8 {
+    ret 0;
+}

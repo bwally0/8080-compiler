@@ -1,0 +1,11 @@
+/* Test: Parser error - missing semicolon after variable declaration */
+var uint8 x
+var uint8 y;
+
+func parser_error() -> uint8 {
+    ret 0;
+}
+
+func main() -> uint8 {
+    ret 0;
+}

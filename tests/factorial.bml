@@ -1,0 +1,24 @@
+/* Simple factorial calculator */
+var uint8 result;
+var uint8 acc;
+var uint8 i;
+
+
+func main() -> uint8 {
+    result = factorial(5);
+    ret 0;
+}
+
+func factorial(uint8 n) -> uint8 {
+    acc = 1;
+    i = 1;
+    
+    while (i < n) {
+        acc = acc + i;
+        i = i + 1;
+    }
+    
+    ret acc;
+}
+
+

@@ -1,0 +1,90 @@
+name: Build and Test BML Compiler
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake build-essential
+
+    - name: Create build directory
+      run: mkdir -p build
+
+    - name: Configure CMake
+      working-directory: build
+      run: cmake ..
+
+    - name: Build compiler
+      working-directory: build
+      run: cmake --build .
+
+    - name: Run all tests
+      run: |
+        EXECUTABLE="./build/bmlc"
+        if [ ! -f "$EXECUTABLE" ] && [ -f "./build/bmlc.exe" ]; then
+          EXECUTABLE="./build/bmlc.exe"
+        fi
+
+        if [ ! -f "$EXECUTABLE" ]; then
+          echo "Error: Executable not found"
+          exit 1
+        fi
+
+        # Test counter
+        TOTAL=0
+        PASSED=0
+        FAILED=0
+
+        # Array of test files to run
+        TEST_FILES=(
+          "./tests/fib.bml"
+          "./tests/factorial.bml"
+          "./tests/function_call_errors.bml"
+          "./tests/literal_errors.bml"
+          "./tests/redeclaration_errors.bml"
+          "./tests/semantic_errors.bml"
+          "./tests/type_errors.bml"
+          "./tests/lexer_errors.bml"
+          "./tests/parser_errors.bml"
+        )
+
+        echo "========================================="
+        echo "Running BML Compiler Tests"
+        echo "========================================="
+        echo ""
+
+        for test_file in "${TEST_FILES[@]}"; do
+          if [ -f "$test_file" ]; then
+            TOTAL=$((TOTAL + 1))
+            echo "Test $TOTAL: $test_file"
+            
+            if $EXECUTABLE "$test_file" > /tmp/test_output.txt 2>&1; then
+              echo "  ✓ PASSED"
+              PASSED=$((PASSED + 1))
+            else
+              echo "  ✗ FAILED"
+              cat /tmp/test_output.txt | sed 's/^/    /'
+              FAILED=$((FAILED + 1))
+            fi
+            echo ""
+          fi
+        done
+
+        echo "========================================="
+        echo "Test Results: $PASSED/$TOTAL passed"
+        echo "========================================="
+
+        if [ $FAILED -gt 0 ]; then
+          exit 1
+        fi

@@ -115,6 +115,8 @@ void SemanticAnalyzer::visit_statement(const Statement& stmt) {
         visit_while_statement(*while_stmt);
     } else if (auto ret_stmt = dynamic_cast<const RetStatement*>(&stmt)) {
         visit_return_statement(*ret_stmt);
+    } else if (auto expr_stmt = dynamic_cast<const ExpressionStatement*>(&stmt)) {
+        visit_expression(*expr_stmt->expression);
     }
 }
 
@@ -187,7 +189,13 @@ void SemanticAnalyzer::visit_expression(const Expression& expr) {
             symbol_table_.mark_as_used(var_expr->name);
         }
     } else if (auto call_expr = dynamic_cast<const FuncCallExpression*>(&expr)) {
-        if (!symbol_table_.is_defined(call_expr->name)) {
+        if (call_expr->name == "out") {
+            // Built-in: out(port, value)
+            if (call_expr->arguments.size() != 2) {
+                add_error(format_location(call_expr->location) + ": error: built-in 'out' expects 2 arguments but got " +
+                          std::to_string(call_expr->arguments.size()));
+            }
+        } else if (!symbol_table_.is_defined(call_expr->name)) {
             add_error(format_location(call_expr->location) + ": error: undefined function '" + 
                       call_expr->name + "'");
         } else {
@@ -256,6 +264,7 @@ Type SemanticAnalyzer::get_expression_type(const Expression& expr) {
         // Shouldn't reach here if visit_expression was called first
         return Type::UINT8;
     } else if (auto call_expr = dynamic_cast<const FuncCallExpression*>(&expr)) {
+        if (call_expr->name == "out") return Type::UINT8;
         Symbol* symbol = symbol_table_.lookup(call_expr->name);
         if (symbol && symbol->is_function) {
             return symbol->type;

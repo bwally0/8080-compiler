@@ -227,7 +227,34 @@ std::unique_ptr<Block> Parser::parse_block() {
 
 std::unique_ptr<Statement> Parser::parse_statement() {
     if (current_token_.type == TokenType::IDENTIFIER) {
-        return parse_assignment_statement();
+        // Peek ahead: if next is '(' it's a function call statement, else assignment
+        auto name = current_token_.lexeme;
+        auto loc = current_location();
+        advance();
+        if (current_token_.type == TokenType::L_PAREN) {
+            // Expression statement (function call)
+            expect(TokenType::L_PAREN);
+            auto args = parse_argument_list();
+            expect(TokenType::R_PAREN);
+            auto call = std::make_unique<FuncCallExpression>();
+            call->location = loc;
+            call->name = name;
+            call->arguments = std::move(args);
+            expect(TokenType::SEMICOLON);
+            auto stmt = std::make_unique<ExpressionStatement>();
+            stmt->location = loc;
+            stmt->expression = std::move(call);
+            return stmt;
+        } else {
+            // Assignment statement
+            auto assignment_statement = std::make_unique<AssignmentStatement>();
+            assignment_statement->location = loc;
+            assignment_statement->name = name;
+            expect(TokenType::ASSIGN);
+            assignment_statement->value = parse_expression();
+            expect(TokenType::SEMICOLON);
+            return assignment_statement;
+        }
     } else if (current_token_.type == TokenType::KW_IF) {
         return parse_if_statement();
     } else if (current_token_.type == TokenType::KW_WHILE) {

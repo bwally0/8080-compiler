@@ -1,0 +1,25 @@
+/* Fibonacci: compute first 10 Fibonacci numbers, output each to port 1 */
+/* F(0)=0, F(1)=1, F(2)=1, F(3)=2, F(4)=3, F(5)=5, F(6)=8, F(7)=13, F(8)=21, F(9)=34 */
+/* Output 0xFF to port 2 when done */
+
+var uint8 prev;
+var uint8 curr;
+var uint8 temp;
+var uint8 i;
+
+func main() -> uint8 {
+    prev = 0;
+    curr = 1;
+    i = 0;
+
+    while (i < 10) {
+        out(1, prev);
+        temp = prev + curr;
+        prev = curr;
+        curr = temp;
+        i = i + 1;
+    }
+
+    out(2, 255);
+    ret 0;
+}

@@ -142,6 +142,8 @@ void CodeGenerator::generate_statement(const Statement& stmt) {
         generate_while(*while_stmt);
     } else if (auto ret = dynamic_cast<const RetStatement*>(&stmt)) {
         generate_return(*ret);
+    } else if (auto expr_stmt = dynamic_cast<const ExpressionStatement*>(&stmt)) {
+        generate_expression(*expr_stmt->expression);
     }
 }
 
@@ -331,6 +333,17 @@ std::string CodeGenerator::generate_binary_op(const BinaryExpression& expr) {
 }
 
 std::string CodeGenerator::generate_function_call(const FuncCallExpression& expr) {
+    // Built-in: out(port, value) -> OUT instruction
+    if (expr.name == "out") {
+        auto port_literal = dynamic_cast<const NumberLiteral*>(expr.arguments[0].get());
+        if (!port_literal) {
+            throw std::runtime_error("out() port must be a constant");
+        }
+        generate_expression(*expr.arguments[1]);
+        emit(InstructionEmitter::out(static_cast<uint8_t>(port_literal->value)));
+        return "A";
+    }
+
     emit_comment("Function call: " + expr.name);
     
     // Evaluate arguments and store to ARG slots

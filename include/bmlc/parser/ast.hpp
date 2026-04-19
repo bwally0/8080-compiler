@@ -127,6 +127,10 @@ struct RetStatement : Statement {
     std::unique_ptr<Expression> value;
 };
 
+struct ExpressionStatement : Statement {
+    std::unique_ptr<Expression> expression;
+};
+
 struct Block : ASTNode {
     std::vector<std::unique_ptr<Statement>> statements;
 };

@@ -1,4 +1,3 @@
-/* Simple factorial calculator */
 var uint8 result;
 var uint8 acc;
 var uint8 i;

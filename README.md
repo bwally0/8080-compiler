@@ -2,15 +2,17 @@
 Brendan-Marlow Language Compiler
 target -> 8080 assembly
 
-function argumentss and return values are stored in fixed memory spaces.
+function arguments and return values are stored in fixed memory spaces (starting at 0x1000).
 ```
-ARG 0: 1B
-ARG 1: 1B
-ARG 2: 1B
-ARG 3: 1B
+[0x1000] ARG 0: 1B
+[0x1001] ARG 1: 1B
+[0x1002] ARG 2: 1B
+[0x1003] ARG 3: 1B
 
-RET 0: 1B
-RET 1: 1B
+[0x1004] RET 0: 1B
+[0x1005] RET 1: 1B
+
+[0x1006+] Global variables
 ```
 
 

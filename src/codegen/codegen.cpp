@@ -43,8 +43,8 @@ void CodeGenerator::generate(const Program& program) {
     
     // Emit header comments
     emit_comment("Fixed calling convention addresses (reserved)");
-    emit_comment("ARG 0-3: 0000h-0003h");
-    emit_comment("RET 0-1: 0004h-0005h");
+    emit_comment("ARG 0-3: 1000h-1003h");
+    emit_comment("RET 0-1: 1004h-1005h");
     emit("");
     
     // Emit global variable map

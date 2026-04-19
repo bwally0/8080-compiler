@@ -15,7 +15,7 @@ Choose one of the following approaches:
 - Assign registers to variables in declaration order
 - Maintain a register pool: B, C, D, E, H, L (A is reserved for arithmetic)
 - When a variable is needed, check if already in a register; if not, assign next available
-- When all registers full, spill to global data memory (starting from 0x0006)
+- When all registers full, spill to global data memory (starting from 0x1006)
 
 #### Option B: Linear Scan Allocation (More complex)
 - Analyze variable lifetimes using the AST
@@ -24,7 +24,7 @@ Choose one of the following approaches:
 
 **Recommendation**: Start with Option A for simplicity.
 
-**Important**: ARG 0-3 (0x0000-0x0003) and RET 0-1 (0x0004-0x0005) are fixed reserved addresses. Never allocate global variables to these addresses.
+**Important**: ARG 0-3 (0x1000-0x1003) and RET 0-1 (0x1004-0x1005) are fixed reserved addresses. Never allocate global variables to these addresses.
 
 ### 1.2 AAccumulator (A) Role
 - A is the primary accumulator for arithmetic/logic operations
@@ -37,22 +37,22 @@ Choose one of the following approaches:
 BML uses a **fixed address space calling convention** for function arguments and return values:
 
 ```
-[0x0000]       -- ARG 0 (1 byte, function argument 0)
-[0x0001]       -- ARG 1 (1 byte, function argument 1)
-[0x0002]       -- ARG 2 (1 byte, function argument 2)
-[0x0003]       -- ARG 3 (1 byte, function argument 3)
-[0x0004]       -- RET 0 (1 byte, return value low byte)
-[0x0005]       -- RET 1 (1 byte, return value high byte, for uint16/int16)
-[0x0006 - ...]  -- Global variables data section
+[0x1000]       -- ARG 0 (1 byte, function argument 0)
+[0x1001]       -- ARG 1 (1 byte, function argument 1)
+[0x1002]       -- ARG 2 (1 byte, function argument 2)
+[0x1003]       -- ARG 3 (1 byte, function argument 3)
+[0x1004]       -- RET 0 (1 byte, return value low byte)
+[0x1005]       -- RET 1 (1 byte, return value high byte, for uint16/int16)
+[0x1006 - ...]  -- Global variables data section
 [0x0100 - ...]  -- Code segment (program instructions)
 ```
 
 **Key points:**
-- ARG 0-3 are **fixed memory addresses** (0x0000-0x0003)
-- RET 0-1 are **fixed memory addresses** (0x0004-0x0005)
-- Global variables start immediately after RET slots (0x0006 onwards)
+- ARG 0-3 are **fixed memory addresses** (0x1000-0x1003)
+- RET 0-1 are **fixed memory addresses** (0x1004-0x1005)
+- Global variables start immediately after RET slots (0x1006 onwards)
 - Each global variable gets a 2-byte slot (enough for uint16, the largest type)
-- Track global variable addresses in a memory map during codegen, starting from 0x0006
+- Track global variable addresses in a memory map during codegen, starting from 0x1006
 
 ### 1.4 Calling Convention
 
@@ -73,26 +73,26 @@ BML uses a **fixed-address calling convention** instead of stack frames:
 ```asm
 ; Write arguments to fixed locations
 MOV A, [variable_a]   ; Load first argument
-STA 0x0000            ; Write to ARG 0
+STA 0x1000            ; Write to ARG 0
 
 MOV A, [variable_b]   ; Load second argument
-STA 0x0001            ; Write to ARG 1
+STA 0x1001            ; Write to ARG 1
 
 CALL func_add         ; Call function
 
 ; After call, read return value
-LDA 0x0004            ; Load RET 0
+LDA 0x1004            ; Load RET 0
 STA [result_var]      ; Store result
 ```
 
 **Inside function:**
 ```asm
 func_add:
-    LDA 0x0000        ; Load ARG 0 (first param)
+    LDA 0x1000        ; Load ARG 0 (first param)
     MOV B, A
-    LDA 0x0001        ; Load ARG 1 (second param)
+    LDA 0x1001        ; Load ARG 1 (second param)
     ADD B             ; Add to A
-    STA 0x0004        ; Store result in RET 0
+    STA 0x1004        ; Store result in RET 0
     RET
 ```
 
@@ -108,16 +108,16 @@ private:
     std::map<std::string, uint16_t> var_addresses; // Variable -> memory address
     std::map<std::string, std::string> var_registers; // Variable -> register
     std::set<std::string> available_registers; // { "B", "C", "D", "E", "H", "L" }
-    uint16_t next_memory_addr = 0x0006;     // Start after ARG 0-3 and RET 0-1
+    uint16_t next_memory_addr = 0x1006;     // Start after ARG 0-3 and RET 0-1
     uint16_t next_label_id = 0;
     
     // Fixed calling convention addresses (do not allocate)
-    const uint16_t ARG0_ADDR = 0x0000;
-    const uint16_t ARG1_ADDR = 0x0001;
-    const uint16_t ARG2_ADDR = 0x0002;
-    const uint16_t ARG3_ADDR = 0x0003;
-    const uint16_t RET0_ADDR = 0x0004;
-    const uint16_t RET1_ADDR = 0x0005;
+    const uint16_t ARG0_ADDR = 0x1000;
+    const uint16_t ARG1_ADDR = 0x1001;
+    const uint16_t ARG2_ADDR = 0x1002;
+    const uint16_t ARG3_ADDR = 0x1003;
+    const uint16_t RET0_ADDR = 0x1004;
+    const uint16_t RET1_ADDR = 0x1005;
     
 public:
     void generate(const Program& program);
@@ -165,11 +165,11 @@ struct VariableDescriptor {
 ### 3.1 Program Node
 ```
 1. Reserve fixed memory addresses for calling convention:
-   - 0x0000-0x0003: ARG 0-3 (caller/callee parameter passing)
-   - 0x0004-0x0005: RET 0-1 (return values)
-   - Next available address: 0x0006
+   - 0x1000-0x1003: ARG 0-3 (caller/callee parameter passing)
+   - 0x1004-0x1005: RET 0-1 (return values)
+   - Next available address: 0x1006
 2. For each Global Variable Declaration:
-   - Allocate memory starting from 0x0006 onwards
+   - Allocate memory starting from 0x1006 onwards
    - Each variable gets 2-byte slot (even uint8, for simplicity)
    - Store address in variable memory map
 3. For each Function Declaration:
@@ -182,16 +182,16 @@ struct VariableDescriptor {
 Example output:
 ```asm
 ; Fixed calling convention addresses (reserved)
-; 0x0000 ARG 0
-; 0x0001 ARG 1
-; 0x0002 ARG 2
-; 0x0003 ARG 3
-; 0x0004 RET 0
-; 0x0005 RET 1
+; 0x1000 ARG 0
+; 0x1001 ARG 1
+; 0x1002 ARG 2
+; 0x1003 ARG 3
+; 0x1004 RET 0
+; 0x1005 RET 1
 
-; Global variable storage starts at 0x0006
-; var_x at 0x0006
-; var_y at 0x0008
+; Global variable storage starts at 0x1006
+; var_x at 0x1006
+; var_y at 0x1008
 
 ; Jump to main routine or entry point
 JMP main
@@ -210,17 +210,17 @@ main:
 ```
 1. Emit function label (e.g., func_add:)
 2. Load parameters from fixed ARG addresses:
-   - Argument 0 -> load from 0x0000
-   - Argument 1 -> load from 0x0001
-   - Argument 2 -> load from 0x0002
-   - Argument 3 -> load from 0x0003
+   - Argument 0 -> load from 0x1000
+   - Argument 1 -> load from 0x1001
+   - Argument 2 -> load from 0x1002
+   - Argument 3 -> load from 0x1003
    - Store in registers or local working variables (not ARG slots themselves)
 3. For each statement in function body:
    - Generate statement code
 4. If function has non-void return type and last statement isn't return:
    - Error (should be caught in semantic analysis)
 5. Before RET instruction, write return value to fixed RET addresses:
-   - For uint8/int8 return: write to RET 0 (0x0004)
+   - For uint8/int8 return: write to RET 0 (0x1004)
    - For uint16/int16 return: write low byte to RET 0, high byte to RET 1
 6. Emit RET instruction
 ```
@@ -229,18 +229,18 @@ Example:
 ```asm
 func_add:
 ; Parameters available at fixed ARG addresses
-; Load argument 0 from ARG 0 (0x0000)
-LDA 0x0000
+; Load argument 0 from ARG 0 (0x1000)
+LDA 0x1000
 MOV B, A          ; Save in register B for later
 
-; Load argument 1 from ARG 1 (0x0001)
-LDA 0x0001
+; Load argument 1 from ARG 1 (0x1001)
+LDA 0x1001
 
 ; Perform addition
 ADD B             ; A = A + B
 
-; Write return value to RET 0 (0x0004)
-STA 0x0004
+; Write return value to RET 0 (0x1004)
+STA 0x1004
 
 ; Return
 RET
@@ -296,10 +296,10 @@ For each statement in block:
    - Generate code for return expression
    - Result in A
    - If function return type is uint8/int8:
-     - Store A to RET 0 (0x0004): STA 0x0004
+     - Store A to RET 0 (0x1004): STA 0x1004
    - If function return type is uint16/int16:
-     - Store low byte to RET 0 (0x0004): STA 0x0004
-     - Store high byte to RET 1 (0x0005): MOV A, [high_byte]; STA 0x0005
+     - Store low byte to RET 0 (0x1004): STA 0x1004
+     - Store high byte to RET 1 (0x1005): MOV A, [high_byte]; STA 0x1005
 2. Emit: RET
 ```
 
@@ -357,33 +357,33 @@ For each statement in block:
 1. Evaluate each argument in order:
    - Generate code for argument 0 expression
    - Result in A
-   - Store A to fixed memory address: 0x0000 (ARG 0)
-   - Repeat for arguments 1-3, storing to 0x0001-0x0003 (ARG 1-3)
+   - Store A to fixed memory address: 0x1000 (ARG 0)
+   - Repeat for arguments 1-3, storing to 0x1001-0x1003 (ARG 1-3)
 2. Emit: CALL func_name
 3. After CALL returns, retrieve return value from fixed RET addresses:
-   - For uint8/int8: Load from 0x0004 (RET 0) into A
-   - For uint16/int16: Load from 0x0004 and 0x0005 (RET 0 and RET 1)
+   - For uint8/int8: Load from 0x1004 (RET 0) into A
+   - For uint16/int16: Load from 0x1004 and 0x1005 (RET 0 and RET 1)
 4. Return result location (A)
 ```
 
 Example:
 ```asm
 ; Call add(x, y)
-; Assume x is at memory 0x0010, y is at memory 0x0011
+; Assume x is at memory 0x1010, y is at memory 0x1011
 
 ; Prepare argument 0
-LDA 0x0010        ; Load x
-STA 0x0000        ; Write to ARG 0
+LDA 0x1010        ; Load x
+STA 0x1000        ; Write to ARG 0
 
 ; Prepare argument 1
-LDA 0x0011        ; Load y
-STA 0x0001        ; Write to ARG 1
+LDA 0x1011        ; Load y
+STA 0x1001        ; Write to ARG 1
 
 ; Call function
 CALL func_add
 
 ; Retrieve return value
-LDA 0x0004        ; Load RET 0
+LDA 0x1004        ; Load RET 0
 ; A now contains result
 ```
 
@@ -410,8 +410,8 @@ std::string allocate_register(const std::string& var_name) {
 
 ```cpp
 uint16_t allocate_memory(const std::string& var_name, size_t size) {
-    // Fixed addresses are reserved: 0x0000-0x0005 (ARG 0-3, RET 0-1)
-    // Global variables start at 0x0006
+    // Fixed addresses are reserved: 0x1000-0x1005 (ARG 0-3, RET 0-1)
+    // Global variables start at 0x1006
     uint16_t addr = next_memory_addr;
     var_addresses[var_name] = addr;
     next_memory_addr += size;
@@ -420,9 +420,9 @@ uint16_t allocate_memory(const std::string& var_name, size_t size) {
 ```
 
 The memory map is organized as:
-- 0x0000-0x0003: ARG 0-3 (reserved, do not allocate)
-- 0x0004-0x0005: RET 0-1 (reserved, do not allocate)
-- 0x0006 onwards: Global variables (next_memory_addr initialized to 0x0006)
+- 0x1000-0x1003: ARG 0-3 (reserved, do not allocate)
+- 0x1004-0x1005: RET 0-1 (reserved, do not allocate)
+- 0x1006 onwards: Global variables (next_memory_addr initialized to 0x1006)
 
 ### 4.3 Spilling Variables
 
@@ -462,12 +462,12 @@ Emit as plain text assembly (can be fed to an 8080 assembler):
 
 ```asm
 ; Fixed calling convention addresses (reserved)
-; ARG 0-3: 0x0000-0x0003
-; RET 0-1: 0x0004-0x0005
+; ARG 0-3: 0x1000-0x1003
+; RET 0-1: 0x1004-0x1005
 
-; Global variables start at 0x0006
-; var_x at 0x0006
-; var_y at 0x0008
+; Global variables start at 0x1006
+; var_x at 0x1006
+; var_y at 0x1008
 
 ; Program entry point
     JMP main
@@ -475,12 +475,12 @@ Emit as plain text assembly (can be fed to an 8080 assembler):
 ; Function definitions
 func_add:
     ; Load parameters from ARG 0-3
-    LDA 0x0000
+    LDA 0x1000
     MOV B, A
-    LDA 0x0001
+    LDA 0x1001
     ADD B
     ; Store return value
-    STA 0x0004
+    STA 0x1004
     RET
 
 main:
@@ -518,9 +518,9 @@ If targeting direct machine code:
 - [ ] Test: `if (x < 5) { y = 1; } else { y = 2; }`
 
 ### Stage 4: Functions
-- [ ] Load function arguments from fixed ARG 0-3 addresses (0x0000-0x0003)
+- [ ] Load function arguments from fixed ARG 0-3 addresses (0x1000-0x1003)
 - [ ] Generate function call code (write args to ARG slots, CALL, read return from RET slots)
-- [ ] Store return values to fixed RET 0-1 addresses (0x0004-0x0005)
+- [ ] Store return values to fixed RET 0-1 addresses (0x1004-0x1005)
 - [ ] Generate return statements (write result to RET slots, RET instruction)
 - [ ] Test: `func add(a, b) -> uint8 { return a + b; } result = add(3, 4);`
 
@@ -557,7 +557,7 @@ Input AST:
     
 Expected output (fragment):
   MVI A, 5
-  STA 0x0000  ; or MOV B, A if x is in register B
+  STA 0x1000  ; or MOV B, A if x is in register B
 ```
 
 ### 8.2 Integration Tests
@@ -579,18 +579,18 @@ Compare against manual assembly for known programs:
 ### 9.1 Intermediate Output
 Emit human-readable assembly with comments:
 ```asm
-; Global variable: x (type: uint8) at memory 0x0000
-; Global variable: y (type: uint16) at memory 0x0002
+; Global variable: x (type: uint8) at memory 0x1000
+; Global variable: y (type: uint16) at memory 0x1002
 
 main:
     ; Assignment: x = 5
     MVI A, 5
-    STA 0x0000
+    STA 0x1000
     
     ; Assignment: y = x + 10
-    LDA 0x0000
+    LDA 0x1000
     ADI 10
-    STA 0x0002
+    STA 0x1002
     
     HLT
 ```

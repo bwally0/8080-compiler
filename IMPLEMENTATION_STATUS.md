@@ -5,7 +5,7 @@
 ### Infrastructure ✅
 - **InstructionEmitter** - All 50+ 8080 instructions
 - **RegisterPool** - Register allocation with LRU tracking
-- **MemoryManager** - Global variable memory management (starting at 0x0006)
+- **MemoryManager** - Global variable memory management (starting at 0x1006)
 - **CodeGenerator** - Main code generator class
 
 ### Code Generation Methods ✅
@@ -36,11 +36,11 @@ x = 5;
 **Expected output (`tests/simple.asm`)**:
 ```asm
 ; Fixed calling convention addresses (reserved)
-; ARG 0-3: 0x0000-0x0003
-; RET 0-1: 0x0004-0x0005
+; ARG 0-3: 0x1000-0x1003
+; RET 0-1: 0x1004-0x1005
 
 ; Global variables:
-; x at 0x0006
+; x at 0x1006
 
 ; Program entry point
 JMP main
@@ -104,7 +104,7 @@ b = 3;
 result = a + b;
 ```
 
-**Expected**: Assignment with ADD instruction, stores result to memory address 0x000A
+**Expected**: Assignment with ADD instruction, stores result to memory address 0x100A
 
 ### 4. **Test Stage 3: Control Flow**
 
@@ -142,9 +142,9 @@ class CodeGenerator {
 
 ### Memory Layout ✅
 ```
-0x0000-0x0003: ARG 0-3 (function arguments - reserved)
-0x0004-0x0005: RET 0-1 (return values - reserved)
-0x0006+:       Global variables (implicit memory addresses)
+0x1000-0x1003: ARG 0-3 (function arguments - reserved)
+0x1004-0x1005: RET 0-1 (return values - reserved)
+0x1006+:       Global variables (implicit memory addresses)
 ```
 
 ### Calling Convention ✅

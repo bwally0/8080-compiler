@@ -85,13 +85,13 @@ private:
 class MemoryManager {
 public:
     // Fixed calling convention addresses (reserved, cannot allocate)
-    static constexpr uint16_t ARG0_ADDR = 0x0000;
-    static constexpr uint16_t ARG1_ADDR = 0x0001;
-    static constexpr uint16_t ARG2_ADDR = 0x0002;
-    static constexpr uint16_t ARG3_ADDR = 0x0003;
-    static constexpr uint16_t RET0_ADDR = 0x0004;
-    static constexpr uint16_t RET1_ADDR = 0x0005;
-    static constexpr uint16_t GLOBAL_VAR_START = 0x0006;
+    static constexpr uint16_t ARG0_ADDR = 0x1000;
+    static constexpr uint16_t ARG1_ADDR = 0x1001;
+    static constexpr uint16_t ARG2_ADDR = 0x1002;
+    static constexpr uint16_t ARG3_ADDR = 0x1003;
+    static constexpr uint16_t RET0_ADDR = 0x1004;
+    static constexpr uint16_t RET1_ADDR = 0x1005;
+    static constexpr uint16_t GLOBAL_VAR_START = 0x1006;
     
     MemoryManager();
     
